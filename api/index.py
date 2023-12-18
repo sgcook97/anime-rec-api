@@ -1184,5 +1184,5 @@ def healthchecker():
     """
     return {"status": "success", "message": "Integrate Flask Framework with Next.js"}, 200
 
-if __name__ == "__main__":
-    app.run(debug=True, port=8000)
+# if __name__ == "__main__":
+#     app.run(debug=True, port=8000)
