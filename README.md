@@ -1,4 +1,4 @@
-# Samnroll API
+# SamnRoll API
 Backend for Anime Recommender Website
 
 **Description:** The Anime Recommender Backend is a Flask API that powers an anime recommendation system. It integrates with a PostgreSQL database and utilizes a hybrid recommendation system incorporating both content-based (cosine similarity) and collaborative filtering (TensorFlow neural network) approaches. Additionally, it connects to the MyAnimeList API for additional anime information.
