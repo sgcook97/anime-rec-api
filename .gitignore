@@ -5,6 +5,7 @@ recsys-models
 venv
 anime-data
 load_data.py
+models
 
 # dependencies
 /node_modules

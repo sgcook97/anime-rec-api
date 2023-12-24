@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
                                unset_jwt_cookies, jwt_required, JWTManager
 from werkzeug.security import generate_password_hash, check_password_hash
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.layers import Input, Embedding, Flatten, Dense, Concatenate
 from keras.optimizers import Adam
 from sklearn.metrics.pairwise import cosine_similarity
@@ -48,6 +48,7 @@ db = SQLAlchemy(app)
 
 nn_model = None
 training_model = None
+nn_model_path = "./models/nn_model.keras"
 
 class NeuralNetworkRecommender:
     def __init__(self, num_users, num_items, embedding_size=50):
@@ -124,6 +125,12 @@ class NeuralNetworkRecommender:
 
         # Fit the model using the training data
         self.model.fit([user_array, item_array], ratings, epochs=num_epochs, batch_size=batch_size)
+    
+    def loadModel(self, model_path):
+        self.model = load_model(model_path)
+
+    def saveModel(self, model_path):
+        self.model.save(model_path)
 
     def predict_ratings_for_user(self, user_id, item_ids):
         """
@@ -868,8 +875,12 @@ def initialize_recommender():
     
     nn_model.set_data(anime_df, ratings_df, user_id_map, anime_id_map, orig_user_id_map, orig_anime_id_map)
     
-    user_item_pairs, ratings = getTrainingData(ratings_df)
-    nn_model.train(user_item_pairs, ratings)
+    if os.path.exists(nn_model_path):
+        nn_model.loadModel(nn_model_path)
+    else:
+        user_item_pairs, ratings = getTrainingData(ratings_df)
+        nn_model.train(user_item_pairs, ratings)
+        nn_model.saveModel(nn_model_path)
     
     
     # content based
@@ -901,6 +912,7 @@ def update_model():
 
     training_model = retrain_model()
     nn_model = training_model
+    nn_model.saveModel(nn_model_path)
     training_model = None
 
     return jsonify({"message": "Model update completed"})
@@ -933,7 +945,6 @@ def return_recs():
 
     # If the user has been trained into the NN model, we will use that
     if orig_user_id in nn_model.user_id_map.keys():
-        print('here')
         userId = nn_model.user_id_map[orig_user_id]
         recommendations = nn_model.getTopN(userId, numRecs)
         for item_id, _ in recommendations:
@@ -1184,5 +1195,5 @@ def healthchecker():
     """
     return {"status": "success", "message": "Integrate Flask Framework with Next.js"}, 200
 
-# if __name__ == "__main__":
-#     app.run(debug=True, port=8000)
+if __name__ == "__main__":
+    app.run(debug=True, port=8000)
